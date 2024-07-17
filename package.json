@@ -1,0 +1,17 @@
+{
+  "name": "ft5-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon start"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.19.2",
+    "joi": "^17.13.3",
+    "nodemon": "^3.1.4"
+  }
+}
