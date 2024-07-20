@@ -1,14 +1,9 @@
-let todos = require("./todos.json");
 const express = require("express");
 const app = express();
+const {attachTodos} = require('./middleware/index')
 
 app.use(express.static("public"));
 app.use(express.json());
-
-function attachTodos (req,res,next) {
-req.todos = todos;
-next();
-}
 
 app.use('/todos', attachTodos)
 app.use('/todos', require('./routes/todos'));
