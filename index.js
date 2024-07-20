@@ -102,6 +102,14 @@ app.put("/todos/:id", (req, res) => {
     return;
   }
 
+  const validateResult = todoSchema.validate(req.body);
+  if (validateResult.error) {
+    res.send(
+      `Please check the request body. Error: ${validateResult.error.details[0].message}`
+    );
+    return;
+  }
+  
   todos[index] = req.body;
   res.send(todos[index]);
 });
