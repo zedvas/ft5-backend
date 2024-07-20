@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+require("dotenv").config()
+
 const {attachTodos, attachUsers} = require('./middleware/index')
 
 app.use(express.static("public"));

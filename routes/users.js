@@ -2,13 +2,15 @@ const express = require("express");
 const router = express.Router();
 const createToken = require("../utils");
 const joi = require("joi");
+const sha256 = require("sha256");
+require("dotenv").config();
 
 const userSchema = require("../validation/userSchema");
 const messageSchema = require("../validation/messageSchema");
 
 const { validateToken } = require("../middleware/index");
 
-//get all users - testing purposes
+//get all users
 router.get("/", (req, res) => {
   res.send(req.users);
 });
@@ -26,12 +28,13 @@ router.post("/signup", (req, res) => {
     (user) => req.body.email.toLowerCase() === user.email.toLowerCase()
   );
 
-  if (index === -1) {
-    req.users.push(req.body);
-    res.send(req.users);
+  if (index !== -1) {
+    res.send("user exists");
     return;
   } else {
-    res.send("user exists");
+    req.body.password = sha256(process.env.SALT + req.body.password);
+    req.users.push(req.body);
+    res.send(req.users);
     return;
   }
 });
@@ -41,14 +44,13 @@ router.post("/login", (req, res) => {
   const index = req.users.findIndex(
     (user) =>
       req.body.email.toLowerCase() === user.email.toLowerCase() &&
-      req.body.password === user.password
+      sha256(process.env.SALT + req.body.password) === user.password
   );
 
   if (index === -1) {
     res.send("Invalid email/password combo");
     return;
   } else {
-    //create token and attach to user, send back to them too
     const token = createToken();
     req.users[index].tokens
       ? req.users[index].tokens.push(token)
@@ -59,18 +61,22 @@ router.post("/login", (req, res) => {
   }
 });
 
+//access private route
 router.get("/privateRoute", validateToken, (req, res) => {
-  res.send(`in the private route for user $${req.authedUser}`);
+  res.send(`in the private route for user ${req.authedUser.email}`);
 });
 
+//add messages to private route
 router.patch("/privateRoute", validateToken, (req, res) => {
-    const validateMessage = messageSchema.validate(req.body);
-    if (validateMessage.error) {
-        res.send(`Invalid details. Error: ${validateMessage.error.message}`);
-        return;
-      }
-      req.authedUser.messages ? req.authedUser.messages.push(req.body) : req.authedUser.messages = [req.body];
-      res.send(req.authedUser)
+  const validateMessage = messageSchema.validate(req.body);
+  if (validateMessage.error) {
+    res.send(`Invalid details. Error: ${validateMessage.error.message}`);
+    return;
+  }
+  req.authedUser.messages
+    ? req.authedUser.messages.push(req.body)
+    : (req.authedUser.messages = [req.body]);
+  res.send(req.authedUser);
 });
 
 module.exports = router;
